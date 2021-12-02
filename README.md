@@ -616,3 +616,195 @@ function App() {
 ```
 
 ![image](https://user-images.githubusercontent.com/42884032/144282608-7e14f625-e94b-42b2-bec9-d69c375d2d35.png)
+
+<hr />
+
+# 하단 탭 내비게이터
+
+페이스북의 하단 내비게이터 같은 앱 하단에 나오는 내비게이터를 말한다.
+
+## 설치
+
+아이콘도 추가할 예정이기 때문에 같이 설치해 준다.
+
+```bash
+$ yarn add @react-navigation/bottom-tabs react-native-vector-icons
+```
+
+## 기본 사용법
+
+위에 내비게이터와 익숙한 방식으로 설정하면 된다. 화면만 등록해 줘도 아래와 같은 화면이 바로 생기는걸 볼 수 있다.
+
+```javascript
+const Tab = createBottomTabNavigator();
+
+function HomeScreen() {
+  return <Text>Home</Text>;
+}
+
+function SearchScreen() {
+  return <Text>Search</Text>;
+}
+
+function NotificationScreen() {
+  return <Text>Notification</Text>;
+}
+
+function MessageScreen() {
+  return <Text>Message</Text>;
+}
+
+function App() {
+  return (
+    <NavigationContainer>
+      <Tab.Navigator initialRouteName="Home">
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Search" component={SearchScreen} />
+        <Tab.Screen name="Notification" component={NotificationScreen} />
+        <Tab.Screen name="Message" component={MessageScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
+```
+
+![image](https://user-images.githubusercontent.com/42884032/144414813-c65797ed-a89e-4b35-9dcc-ed1261e43ecb.png)
+
+### icon을 사용하기 위한 설정
+
+처음에 해봤듯이 아이콘을 사용하기 위해서는 ios와 android에 각각의 설정이 필요하다.
+
+#### ios
+
+설정 후 앱 다시 실행
+
+```javascript
+// ios/LearnReactNavigation/Info.plist
+// ...
+// <key>UIViewControllerBasedStatusBarAppearance</key>
+//   <false/>
+// 맨 아래에 추가
+	<key>UIAppFonts</key>
+	<array>
+		<string>MaterialIcons.ttf</string>
+	</array>
+// </dict>
+// </plist>
+```
+
+#### android
+
+설정 후 앱 다시 실행
+
+```javascript
+// android/app/build.gradle
+// ...
+// apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle");
+// applyNativeModulesAppBuildGradle(project)
+// 맨 아래에 추가
+project.ext.vectoricons = [
+    iconFontNames: ['MaterialIcons.ttf']
+]
+
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+```
+
+설정이 끝났다면 아래와 같이 아이콘을 추가해 주자.
+
+```javascript
+<Tab.Screen
+  name="Home"
+  component={HomeScreen}
+  options={{
+    title: '홈',
+    tabBarIcon: ({color, size}) => (
+      <Icon name="home" color={color} size={size} />
+    ),
+  }}
+/>
+<Tab.Screen
+  name="Search"
+  component={SearchScreen}
+  options={{
+    title: '검색',
+    tabBarIcon: ({color, size}) => (
+      <Icon name="search" color={color} size={size} />
+    ),
+  }}
+/>
+<Tab.Screen
+  name="Notification"
+  component={NotificationScreen}
+  options={{
+    title: '알림',
+    tabBarIcon: ({color, size}) => (
+      <Icon name="notifications" color={color} size={size} />
+    ),
+  }}
+/>
+<Tab.Screen
+  name="Message"
+  component={MessageScreen}
+  options={{
+    title: '메시지',
+    tabBarIcon: ({color, size}) => (
+      <Icon name="message" color={color} size={size} />
+    ),
+  }}
+/>
+```
+
+`tabBarIcon`에는 함수 컴포넌트를 받는데 `size`, `color`, `focused`를 Props로 받는다. 사용을 안할거라면 생략해도 되며, 생략해 보면서 어떤게 변하는지 테스트 해봐도 좋다.
+
+![image](https://user-images.githubusercontent.com/42884032/144417407-6ddb6fac-c7a4-4089-b4e1-3cc14cc997c1.png)
+
+## 하단 탭 커스텀마이징
+
+- 다른 내비게이터와 동일하게 `screenOptions`를 통해 커스텀 마이징할 수 있다. [[공식문서](https://reactnavigation.org/docs/tab-based-navigation)]
+- 참고로 예전 버전에서는 탭에 관한 설정은 `tapBarOptions`를 통해 한다. 버전에 따라 제공되는 속성의 이름도 다를 수 있으니 이점을 꼭 확인하자.
+
+```javascript
+<NavigationContainer>
+  <Tab.Navigator
+    initialRouteName="Home"
+    screenOptions={{
+      tabBarShowLabel: false,
+      tabBarActiveTintColor: '#fb8c00',
+    }}></Tab.Navigator>
+</NavigationContainer>
+```
+
+![image](https://user-images.githubusercontent.com/42884032/144419214-a8eade48-1bff-451b-aff5-d546c5cf7595.png)
+
+<hr />
+
+# 스택 내비게이터와 하단 탭 내비게이터 같이 사용하기
+
+## 기본 사용법
+
+```javascript
+// App.js
+const Stack = createNativeStackNavigator();
+
+function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          tabBarShowLabel: false,
+          tabBarActiveTintColor: '#fb8c00',
+        }}>
+        <Stack.Screen
+          name="Main"
+          component={MainScreen} // <-- MainScreen.js 참고
+          // * 이 설정을 추가하지 않으면 헤더가 두개가 보이는 현상이 나타난다.
+          // * 하단 탭 내비게이터를 스택 내비게이터 내부에서 사용하게 될 때 이 설정을 꼭 해주어야 한다.
+          options={{headerShown: false}}
+        />
+        <Stack.Screen name="Detail" component={DetailScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+```
