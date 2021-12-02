@@ -780,6 +780,8 @@ apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 
 # 스택 내비게이터와 하단 탭 내비게이터 같이 사용하기
 
+commit log: bf6850534717a3be4e3013d52fd8a25248f54d9b
+
 ## 기본 사용법
 
 ```javascript
@@ -807,4 +809,64 @@ function App() {
     </NavigationContainer>
   );
 }
+```
+
+<hr />
+
+# 머티리얼 내비게이터
+
+머티리얼 상단 탭과 하단 탭 내비게이터에 대해 알아보자. 머티리얼 탭의 특징은 구글 머티리얼 디자인 특유의 리플(ripple) 효과가 나타나며, 스와이프를 통한 이동을 지원한다. [[공식 문서](https://reactnavigation.org/docs/material-top-tab-navigator/)]
+
+물론 안드로이드에서만 리플 효과가 나타나며, 안드로이드 5.0 이상에서만 나타난다.
+
+## 머티리얼 상단 내비게이터 설치
+
+설치 후 앱 재실행
+
+```bash
+$ yarn add @react-navigation/material-top-tabs react-native-tab-view react-native-pager-view
+```
+
+## 머티리얼 상단 내비게이터 기본 사용법
+
+기존 코드의 `MainScreen.js`에서 `Tab`을 생성하는 함수와 `size`만 변경해 줬다(머티리얼 상단 탭 내비게이터의 경우 아이콘 사이즈를 직접 지정해줘야 한다.).
+
+```javascript
+const Tab = createMaterialTopTabNavigator();
+// ...
+<Tab.Screen
+  name="Home"
+  component={HomeScreen}
+  options={{
+    title: '홈',
+    tabBarIcon: ({color}) => <Icon name="home" color={color} size={24} />,
+  }}
+/>;
+// ...
+```
+
+그리고 기존에 다뤘던 내비게이터와 달리 상단 헤더를 보여주지 않기 때문에 `App.js`에서 `options={{headerShown: false}}`로 설정했던 부분을 지워주자.
+
+```javascript
+// ...
+<Stack.Screen name="Main" component={MainScreen} />
+// ...
+```
+
+![image](https://user-images.githubusercontent.com/42884032/144423878-dcf6132d-5216-4cd5-8b22-7daad41a3f45.png)
+
+## 머티리얼 상단 내비게이터 커스터마이징
+
+커스터마이징 또한 다른 탭들과 동일한 방식으로 지원된다. 다만 머티리얼 탭에서만 추가된 속성들도 있으니 [[공식 문서](https://reactnavigation.org/docs/material-top-tab-navigator/)]를 참고하자.
+
+![image](https://user-images.githubusercontent.com/42884032/144425796-39a4f496-40d2-443f-8ee4-c4519ddd6aa8.png)
+
+<hr />
+
+## 머티리얼 하단 내비게이터 설치
+
+설치 후 앱 재실행
+
+```bash
+$ yarn add @react-navigation/material-bottom-tabs react-native-paper
 ```
