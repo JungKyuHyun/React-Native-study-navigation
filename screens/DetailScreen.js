@@ -1,11 +1,24 @@
-import React from 'react';
+import {useRoute} from '@react-navigation/core';
+import React, {useEffect} from 'react';
 import {Button, View, Text} from 'react-native';
 
-function DetailScreen({navigation}) {
+function IDText() {
+  const route = useRoute();
+  return <Text>id: {route.params.id}</Text>;
+}
+
+function DetailScreen({navigation, route}) {
+  useEffect(() => {
+    navigation.setOptions({
+      title: `상세 정보 -${route.params.id}`,
+    });
+  }, [navigation, route]);
+
   return (
     <View>
       <Text>상세 화면</Text>
-      <Button title="뒤로가기" onPress={() => navigation.push('Main')} />
+      <IDText />
+      <Button title="뒤로가기" onPress={() => navigation.pop()} />
     </View>
   );
 }

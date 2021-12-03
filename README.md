@@ -861,6 +861,10 @@ const Tab = createMaterialTopTabNavigator();
 
 ![image](https://user-images.githubusercontent.com/42884032/144425796-39a4f496-40d2-443f-8ee4-c4519ddd6aa8.png)
 
+## commit log
+
+fc1a7d5358a6d08ed770cf24ca6d2e92ddc2be0d
+
 <hr />
 
 ## 머티리얼 하단 내비게이터 설치
@@ -870,3 +874,143 @@ const Tab = createMaterialTopTabNavigator();
 ```bash
 $ yarn add @react-navigation/material-bottom-tabs react-native-paper
 ```
+
+![image](https://user-images.githubusercontent.com/42884032/144426979-5c1c1f9d-b93f-4411-8d6f-f58070030ce3.png)
+
+## 머티리얼 하단 내비게이터 커스터마이징
+
+활성화된 탭에 따라 탭의 배경색을 변경할 수 있다.
+
+```javascript
+<Tab.Screen
+  name="Home"
+  component={HomeScreen}
+  options={{
+    title: '홈',
+    tabBarIcon: ({color}) => <Icon name="home" color={color} size={24} />,
+    tabBarColor: 'black', // <--
+  }}
+/>
+```
+
+이외에도 많은 옵션이 있으며, [[공식문서](https://reactnavigation.org/docs/material-bottom-tab-navigator)]를 참고하자.
+
+![2021-12-02_22-04-46 (1)](https://user-images.githubusercontent.com/42884032/144427518-e5103ba0-2ef3-4998-9078-362e2b4509f2.gif)
+
+## 머티리얼 상단 타이틀과 하단 탭 동기화 시키기
+
+위에서 만든 탭을 자세히 보면 상단 타이틀과 하단 탭의 데이터가 동기화 되지 않는 것을 볼 수 있다.
+
+![image](https://user-images.githubusercontent.com/42884032/144427942-06032337-5a10-4921-b852-de0ae629f7e6.png)
+
+```javascript
+import {
+  NavigationContainer,
+  getFocusedRouteNameFromRoute,
+} from '@react-navigation/native';
+// ...
+
+function getHeaderTitle(route) {
+  const routeName = getFocusedRouteNameFromRoute(route) ?? 'Home';
+  return routeName;
+}
+
+function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          tabBarShowLabel: false,
+          tabBarActiveTintColor: '#fb8c00',
+        }}>
+        <Stack.Screen
+          name="Main"
+          component={MainScreen}
+          options={({route}) => getHeaderTitle(route)} // <--
+        />
+        <Stack.Screen name="Detail" component={DetailScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default App;
+```
+
+`options Props`에 일반 객체가 아닌 **객체를 반환하는 함수**를 넣었다. 이렇게 하면 **내비게이션의 상태가 바뀔때마다** 함수를 다시 실행하여 화면의 `options` 객체를 생성하게 된다.
+
+여기서 사용한 `getFocusedRouteNameFromRoute()` 함수의 경우 `route` 객체를 통해 현재 포커스된 화면의 이름을 조회한다. 여기서 주의할 점은 "**내비게이션의 상태가 바뀔때마다**"이기 때문에 초기에는 `undefined`가 반환되므로 여기에 대한 기본 값을 미리 넣어주도록 만들어야 한다.
+
+<hr />
+
+# 내비게이션 Hooks
+
+리액트 내비게이션은 여러 hook들을 제공해 준다. 이런 훅들을 왜 제공받아야 하는지 궁금할 수 있지만, 우리가 만든 예제에서도 필요한 이유를 찾을 수 있다.
+
+지금은 간단한 애플리케이션을 만들었기 때문에 화면만 존재 하기 때문에 별문제가 안생겼지만, `Screen`으로 사용되지 않는 컴포넌트에서 `route`와 `navigation`을 사용할 수 없다. 물론 Props로 넘겨줘도 되겠지만, 필요한 컴포넌트의 뎁스(depth)가 싶을수록, 필요한 Props가 많을수록 복잡성을 야기하게 된다.
+
+## useNavigation
+
+`Screen`으로 사용되고 있지 않는 컴포넌트에서도 `navigation` 객체를 사용할 수 있다.
+
+```javascript
+// MainScreen.js
+function OpenDetailButton() {
+  const navigation = useNavigation();
+  return (
+    <Button
+      title="Detail 1 열기"
+      onPress={() => navigation.push('Detail', {id: 1})}
+    />
+  );
+}
+
+function HomeScreen() {
+  return (
+    <View>
+      <Text>Home</Text>
+      <OpenDetailButton />
+    </View>
+  );
+}
+```
+
+## useRoute
+
+`Screen`으로 사용되고 있지 않는 컴포넌트에서도 `route` 객체를 사용할 수 있다.
+
+```javascript
+function IDText() {
+  const route = useRoute();
+  return <Text>id: {route.params.id}</Text>;
+}
+
+function DetailScreen({navigation, route}) {
+  useEffect(() => {
+    navigation.setOptions({
+      title: `상세 정보 -${route.params.id}`,
+    });
+  }, [navigation, route]);
+
+  return (
+    <View>
+      <Text>상세 화면</Text>
+      <IDText />
+      <Button title="뒤로가기" onPress={() => navigation.pop()} />
+    </View>
+  );
+}
+```
+
+## useFocusEffect
+
+`useFocusEffect`는 화면에 포커스가 잡혔을 때 특정 작업을 할 수 있게 하는 `Hook`이다. [[공식문서](https://reactnavigation.org/docs/use-focus-effect/)]
+
+이 앱에서는 화면이 사라지는게 아니라, 화면을 쌓으면서 보여주는 것이다. 예를들어 `DetailScreen`을 띄운다면 `HomeScreen` 위에 `DetailScreen`을 쌓아서 보여주는 것이다. 그래서 만약 useEffect를 통해서만 어떤 외부효과를 일으키는 것을 하고 싶다면 처음에는 동작하겠지만, 이전 화면으로 돌아왔을때는 실행되지 않는다.
+
+그래서 다른 화면을 열었다가 돌아왔을 때 특정 작업을 하고 싶다면 `useFocusEffect`을 사용해야 한다. 또 현재 화면에서 다른 화면으로 넘어갈 때 특정 작업을 하고 싶다면 `useFocusEffect`에서 함수를 반환해 주면 된다.
+
+다만 `useFocusEffect`을 사용할 때는 꼭 useCallback과 함께 사용해야 한다. 만약 useCallback을 사용하지 않으면 컴포넌트가 리렌더링될 때마다 `useFocusEffect`에 등록한 함수가 실행될 것이다.
+
+![2021-12-02_22-55-31 (1)](https://user-images.githubusercontent.com/42884032/144435612-d3ea375b-df1a-4316-8815-2e368dac30fd.gif)
